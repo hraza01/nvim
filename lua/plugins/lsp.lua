@@ -44,7 +44,7 @@ local servers = {
           reportGeneralTypeIssues = false,
           reportUnknownMemberType = false,
           diagnosticSeverityOverrides = {
-            reportMissingImports = 'none',
+            reportMissingImports = 'error',
             reportUndefinedVariable = 'none',
             reportGeneralTypeIssues = 'none',
           },

@@ -53,7 +53,7 @@ function M.activate_path(venv)
   local to_restart = false
   for _, name in ipairs(PYRIGHT_SERVERS) do
     for _, client in ipairs(vim.lsp.get_clients { name = name }) do
-      vim.lsp.stop_client(client.id, true)
+      client:stop(true)
       to_restart = true
     end
   end
@@ -96,13 +96,19 @@ function M.discover_venvs()
     end
   end
   local cwd = vim.fn.getcwd()
-  for _, name in ipairs(VENV_NAMES) do add(vim.fs.joinpath(cwd, name)) end
+  for _, name in ipairs(VENV_NAMES) do
+    add(vim.fs.joinpath(cwd, name))
+  end
   for dir in vim.fs.parents(cwd) do
-    for _, name in ipairs(VENV_NAMES) do add(vim.fs.joinpath(dir, name)) end
+    for _, name in ipairs(VENV_NAMES) do
+      add(vim.fs.joinpath(dir, name))
+    end
     if dir == vim.env.HOME then break end
   end
   if vim.env.WORKON_HOME and vim.uv.fs_stat(vim.env.WORKON_HOME) then
-    for name in vim.fs.dir(vim.env.WORKON_HOME) do add(vim.fs.joinpath(vim.env.WORKON_HOME, name)) end
+    for name in vim.fs.dir(vim.env.WORKON_HOME) do
+      add(vim.fs.joinpath(vim.env.WORKON_HOME, name))
+    end
   end
   table.sort(found, function(a, b) return a.label < b.label end)
   return found

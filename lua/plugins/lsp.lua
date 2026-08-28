@@ -12,7 +12,7 @@ require('fidget').setup {}
 require('mason').setup {}
 require('mason-lspconfig').setup { automatic_enable = false }
 
--- Language server configs. `pythonPath` for basedpyright is overridden
+-- Language server configs. `pythonPath` for pyright is overridden
 -- dynamically by lib/venv.lua (via vim.lsp.config deep-merge) when a .venv is
 -- found. See `:help lsp-config`.
 ---@type table<string, vim.lsp.Config>
@@ -33,11 +33,22 @@ local servers = {
     end,
     settings = { Lua = { format = { enable = false } } },
   },
-  basedpyright = {
+  pyright = {
     settings = {
       python = {
         pythonPath = 'python3',
-        analysis = { typeCheckingMode = 'standard', autoSearchPaths = true, useLibraryCodeForTypes = true },
+        analysis = {
+          typeCheckingMode = 'off',
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+          reportGeneralTypeIssues = false,
+          reportUnknownMemberType = false,
+          diagnosticSeverityOverrides = {
+            reportMissingImports = 'none',
+            reportUndefinedVariable = 'none',
+            reportGeneralTypeIssues = 'none',
+          },
+        },
       },
     },
   },

@@ -173,7 +173,7 @@ projects are tracked in `~/.local/state/nvim/projects-history.json`.
 | `<leader>vs` | `:VenvSelect` — pick from discovered venvs |
 
 Auto-detects `.venv`/`venv` by walking up from the buffer's path. Sets
-`python3_host_prog`, configures basedpyright's `pythonPath`, and restarts the
+`python3_host_prog`, configures pyright's `pythonPath`, and restarts the
 LSP. Terminals opened in a project with a venv get `source <venv>/bin/activate`.
 
 ## Overseer (task runner)

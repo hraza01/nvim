@@ -4,7 +4,7 @@
 -- to find a `.venv`/`venv` directory and:
 --   * set `vim.g.python3_host_prog` to the venv's python (used by Neovim's own
 --     python3 host and by `:terminal`-aware tooling);
---   * point basedpyright/pyright at the venv's python via `vim.lsp.config`
+--   * point pyright at the venv's python via `vim.lsp.config`
 --     (which deep-merges, so the server's other settings — e.g. `analysis.*`
 --     set in plugins/lsp.lua — are preserved);
 --   * restart any pyright-family client already running so it re-indexes
@@ -16,7 +16,7 @@
 local M = {}
 
 local VENV_NAMES = { '.venv', 'venv' }
-local PYRIGHT_SERVERS = { 'basedpyright', 'pyright' }
+local PYRIGHT_SERVERS = { 'pyright' }
 
 local function py_bin(venv) return vim.fs.joinpath(venv, 'bin', 'python') end
 

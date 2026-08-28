@@ -4,7 +4,7 @@ A modular, lean Neovim configuration built on [kickstart.nvim](https://github.co
 
 ## What's in it
 
-- **LSP** — basedpyright + ruff (Python), ts_ls (JS/TS), gopls (Go), lua_ls, html/cssls/tailwindcss, sqls, dockerls, jsonls, yamlls. Auto-installed via Mason.
+- **LSP** — pyright + ruff (Python), ts_ls (JS/TS), gopls (Go), lua_ls, html/cssls/tailwindcss, sqls, dockerls, jsonls, yamlls. Auto-installed via Mason.
 - **Formatting** — conform.nvim with format-on-save (ruff for Python, prettierd for web, stylua for Lua). Per-buffer and global toggles.
 - **Completion** — blink.cmp + LuaSnip.
 - **Folding** — native treesitter folds (no nvim-ufo).
@@ -63,7 +63,7 @@ Each plugin file is self-contained — it calls `vim.pack.add`, runs `setup()`, 
 - [tree-sitter CLI](https://github.com/tree-sitter/tree-sitter/blob/master/crates/cli/README.md#installation) (optional, for parser compilation)
 - A clipboard tool (`xclip`/`xsel` on Linux; macOS has it built-in)
 - [Nerd Font](https://www.nerdfonts.com/) — optional; set `vim.g.have_nerd_font = true` in `lua/config/options.lua` if you have one
-- Language runtimes for the LSPs you want (e.g. `npm` for ts_ls, `go` for gopls, `python` for basedpyright/ruff)
+- Language runtimes for the LSPs you want (e.g. `npm` for ts_ls, `go` for gopls, `python` for pyright/ruff)
 
 ## Install
 

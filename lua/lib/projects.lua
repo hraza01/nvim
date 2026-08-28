@@ -1,8 +1,9 @@
 -- Project switcher. Native, no plugin.
 --
 -- `<leader>pp` opens a Telescope picker over `~/dev/*` (recent-first); `<leader>pf`
--- lists them alphabetically. Selecting one `cd`s into it, clears buffers, and
--- opens the project directory in oil. Records the project as most-recent in
+-- lists them alphabetically. Includes top-level dirs plus any nested dir
+-- containing `.vscode/tasks.json`. Selecting one `cd`s into it, clears buffers,
+-- and opens the project in oil. Records the project as most-recent in
 -- `~/.local/state/nvim/projects-history.json`.
 
 local M = {}
@@ -43,7 +44,42 @@ local function record(name)
   save_history(order)
 end
 
----List `~/dev/*` directories (1 level deep).
+-- Pruned during scan to avoid descending into heavy/vendored trees.
+local PRUNE_DIRS = {
+  ['.git'] = true, ['.hg'] = true, ['node_modules'] = true, ['.venv'] = true,
+  ['venv'] = true, ['__pycache__'] = true, ['.cache'] = true, ['.tox'] = true,
+  ['.pytest_cache'] = true, ['.mypy_cache'] = true, ['.ruff_cache'] = true,
+  ['dist'] = true, ['build'] = true, ['target'] = true, ['.next'] = true,
+  ['.terraform'] = true, ['.idea'] = true, ['.vscode'] = true,
+}
+
+-- Max scan depth under `~/dev` for `.vscode/tasks.json`.
+local MAX_SCAN_DEPTH = 5
+
+---Find directories under `root` (up to MAX_SCAN_DEPTH) containing
+---`.vscode/tasks.json`.
+---@param root string absolute path to scan from
+---@return string[] absolute paths of project roots
+local function find_task_roots(root)
+  local results = {}
+  local function walk(dir, depth)
+    if depth > MAX_SCAN_DEPTH then return end
+    for name, type in vim.fs.dir(dir) do
+      if type == 'directory' and not PRUNE_DIRS[name] then
+        local child = vim.fs.joinpath(dir, name)
+        if vim.uv.fs_stat(vim.fs.joinpath(child, '.vscode', 'tasks.json')) then
+          table.insert(results, child)
+        end
+        walk(child, depth + 1)
+      end
+    end
+  end
+  walk(root, 1)
+  return results
+end
+
+---List projects under `~/dev`: top-level dirs plus nested dirs containing
+---`.vscode/tasks.json` (named by path relative to `~/dev`).
 ---`{ name = , path = , rank = }` where `rank` is the 1-based position in
 ---history (1 = most recent; nil = never opened).
 ---@return {name:string, path:string, rank:integer?}[]
@@ -54,10 +90,26 @@ function M.list_projects()
     rank[n] = i
   end
   local projects = {}
-  for name, type in vim.fs.dir(dev_root()) do
+  local seen = {}
+  local root = dev_root()
+
+  local function add(path, name)
+    if seen[path] then return end
+    seen[path] = true
+    table.insert(projects, { name = name, path = path, rank = rank[name] })
+  end
+
+  -- Top-level ~/dev/* directories.
+  for name, type in vim.fs.dir(root) do
     if type == 'directory' then
-      table.insert(projects, { name = name, path = vim.fs.joinpath(dev_root(), name), rank = rank[name] })
+      add(vim.fs.joinpath(root, name), name)
     end
+  end
+
+  -- Nested roots containing .vscode/tasks.json (named relative to ~/dev).
+  for _, path in ipairs(find_task_roots(root)) do
+    local rel = path:sub(#root + 2) -- strip "<root>/" prefix
+    add(path, rel)
   end
   return projects
 end

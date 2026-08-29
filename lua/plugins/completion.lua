@@ -8,7 +8,12 @@ vim.pack.add {
 require('luasnip').setup {}
 
 require('blink.cmp').setup {
-  keymap = { preset = 'default' },
+  keymap = {
+    preset = 'default',
+    ['<CR>'] = { 'accept', 'fallback' },
+    ['<C-j>'] = { 'select_next', 'fallback' },
+    ['<C-k>'] = { 'select_prev', 'fallback' },
+  },
   appearance = { nerd_font_variant = 'mono' },
   completion = { documentation = { auto_show = false, auto_show_delay_ms = 500 } },
   sources = { default = { 'lsp', 'path', 'snippets' } },

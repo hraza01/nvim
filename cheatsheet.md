@@ -176,6 +176,43 @@ Auto-detects `.venv`/`venv` by walking up from the buffer's path. Sets
 `python3_host_prog`, configures pyright's `pythonPath`, and restarts the
 LSP. Terminals opened in a project with a venv get `source <venv>/bin/activate`.
 
+## Dev containers
+
+| Key | Action |
+|-----|--------|
+| `<leader>cr` | **Ready** — `devcontainer up` + bridge pyright LSP |
+| `<leader>cu` | `devcontainer up` (build + start) |
+| `<leader>cd` | `docker compose down` (stop) |
+| `<leader>cb` | Rebuild (`--remove-existing-container`) |
+| `<leader>ce` | Exec — shell into the container |
+| `<leader>cl` | Logs — `docker compose logs -f` |
+| `<leader>cs` | Status — running containers for this service |
+
+Wraps `@devcontainers/cli` for lifecycle and bridges pyright to run inside
+the container via `docker exec -i <container> pyright-langserver --stdio`.
+The LSP sees the container's `site-packages` directly — no path translation.
+
+**Prerequisite:** the `devcontainer.json` must include a path-equal mount so
+file URIs match between local nvim and the in-container LSP:
+```json
+"mounts": ["source=${localWorkspaceFolder}/..,target=${localWorkspaceFolder}/..,type=bind"]
+```
+Also add a `postStartCommand` to install pyright in the container (npm, not pip
+— the pip wrapper doesn't pipe stdio correctly through `docker exec`):
+```json
+"postStartCommand": "npm install -g pyright"
+```
+
+When a container is active, host-venv detection is skipped automatically
+(the container provides the venv). Override the container python path
+per-project via `.nvim.lua`:
+```lua
+vim.g.devcontainer_python_path = '/path/to/container/venv/bin/python'
+```
+
+The project picker (`<leader>pp`) shows a 🐳 marker for projects with a
+`.devcontainer/`.
+
 ## Overseer (task runner)
 
 | Key | Action |
@@ -232,6 +269,7 @@ running unsafe commands from those files.
 -- .nvim.lua
 vim.g.format_on_save = false  -- disable format-on-save for this repo
 -- vim.g.python3_host_prog = '/abs/path/to/.venv/bin/python'  -- non-standard venv
+-- vim.g.devcontainer_python_path = '/path/to/container/venv/bin/python'  -- container venv
 -- require('conform').formatters_by_ft.python = { 'black' }  -- override formatter
 ```
 

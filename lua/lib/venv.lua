@@ -20,11 +20,8 @@ local PYRIGHT_SERVERS = { 'pyright' }
 
 local function py_bin(venv) return vim.fs.joinpath(venv, 'bin', 'python') end
 
---- Walk up from the buffer's file path (or the cwd) to find the first
---- `.venv`/`venv` whose `bin/python` exists. Stops at $HOME. Returns the
---- absolute venv directory or nil.
----@param bufnr? integer
----@return string|nil
+--- @param bufnr? integer
+--- @return string|nil
 function M.find_venv(bufnr)
   bufnr = bufnr or 0
   local path = vim.api.nvim_buf_get_name(bufnr)
@@ -40,10 +37,8 @@ function M.find_venv(bufnr)
   return nil
 end
 
---- Configure the pyright-family servers to use `venv`'s python and restart any
---- running clients so they re-read `pythonPath`. Safe to call repeatedly.
----@param venv string
----@return boolean ok
+--- @param venv string
+--- @return boolean ok
 function M.activate_path(venv)
   if not venv or not vim.uv.fs_stat(py_bin(venv)) then return false end
   vim.g.python3_host_prog = py_bin(venv)
@@ -71,9 +66,8 @@ function M.activate_path(venv)
   return true
 end
 
---- Detect + activate the venv for `bufnr` (or current buffer).
----@param bufnr? integer
----@return string|nil venv
+--- @param bufnr? integer
+--- @return string|nil venv
 function M.activate(bufnr)
   bufnr = bufnr or 0
   local venv = M.find_venv(bufnr)
@@ -84,9 +78,7 @@ function M.activate(bufnr)
   return venv
 end
 
---- Gather candidate venvs for the picker: `.venv`/`venv` under cwd parents,
---- the cwd itself, and anything under `$WORKON_HOME` when set.
----@return {path: string, label: string}[]
+--- @return {path: string, label: string}[]
 function M.discover_venvs()
   local found, seen = {}, {}
   local function add(venv)
@@ -134,10 +126,13 @@ vim.api.nvim_create_autocmd('VimEnter', {
 
 -- Re-activate when entering a python buffer whose venv differs from the
 -- active one (e.g. switching projects in one session).
+-- Skipped when a devcontainer is active for this buffer (lib/devcontainer.lua
+-- sets b:devcontainer_active before this autocmd fires — it loads first).
 vim.api.nvim_create_autocmd('FileType', {
   group = group,
   pattern = 'python',
   callback = function(args)
+    if vim.b[args.buf].devcontainer_active then return end
     local venv = M.find_venv(args.buf)
     if venv and venv ~= vim.b[args.buf].venv_activated then M.activate(args.buf) end
   end,

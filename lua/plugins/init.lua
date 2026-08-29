@@ -62,6 +62,8 @@ for file_name, type in vim.fs.dir(plugins_dir, { follow = true }) do
   end
 end
 
--- Load lib modules (venv, projects) after plugins.
-require 'lib.venv'
+-- Load lib modules. devcontainer must load before venv so its FileType autocmd
+-- (which sets b:devcontainer_active) fires before venv.lua's (which checks it).
+require 'lib.devcontainer'
 require 'lib.projects'
+require 'lib.venv'

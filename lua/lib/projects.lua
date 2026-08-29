@@ -163,7 +163,9 @@ local function open_picker(opts)
       finder = finders.new_table {
         results = projects,
         entry_maker = function(p)
-          return { value = p.name, display = p.name, ordinal = p.name, path = p.path }
+          local dc = require('lib.devcontainer').has_devcontainer(p.path)
+          local display = dc and ('🐳 ' .. p.name) or p.name
+          return { value = p.name, display = display, ordinal = p.name, path = p.path }
         end,
       },
       sorter = conf.generic_sorter {},

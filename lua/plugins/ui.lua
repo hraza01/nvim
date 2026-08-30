@@ -79,7 +79,17 @@ require('lualine').setup {
     lualine_a = { 'mode' },
     lualine_b = { { 'branch', icon = '' }, { 'diagnostics', sources = { 'nvim_lsp' } } },
     lualine_c = { 'filename' },
-    lualine_x = { 'encoding', 'fileformat', { 'filetype', icons_enabled = false } },
+    lualine_x = {
+      'encoding',
+      'fileformat',
+      {
+        'filetype',
+        icons_enabled = false,
+        fmt = function(str)
+          return str == 'oil' and 'netrw' or str
+        end,
+      },
+    },
     lualine_y = {},
     lualine_z = { 'location' },
   },

@@ -15,10 +15,29 @@
 
 local M = {}
 
-local VENV_NAMES = { '.venv', 'venv' }
+local VENV_NAMES = { '.venv', 'venv', '.env', 'env' }
 local PYRIGHT_SERVERS = { 'pyright' }
+local NOTIFY_TIMEOUT_MS = 5000
 
 local function py_bin(venv) return vim.fs.joinpath(venv, 'bin', 'python') end
+
+-- `.env`/`env` collide with the common convention of a `.env` *file* holding
+-- shell/environment variables (dotenv). Require the candidate to actually be
+-- a directory before probing it for `bin/python`, so a `.env` file is never
+-- mistaken for a venv.
+local function is_venv_dir(venv)
+  local stat = vim.uv.fs_stat(venv)
+  return stat ~= nil and stat.type == 'directory' and vim.uv.fs_stat(py_bin(venv)) ~= nil
+end
+
+-- Like vim.notify, but the message clears itself from the cmdline area after
+-- NOTIFY_TIMEOUT_MS instead of sitting there until overwritten by the next
+-- message or a `:` command. `history = false` on the follow-up echo means it
+-- doesn't leave a blank entry in `:messages`.
+local function notify_transient(msg, level)
+  vim.notify(msg, level)
+  vim.defer_fn(function() vim.api.nvim_echo({ { '', 'None' } }, false, {}) end, NOTIFY_TIMEOUT_MS)
+end
 
 --- @param bufnr? integer
 --- @return string|nil
@@ -30,7 +49,7 @@ function M.find_venv(bufnr)
   for dir in vim.fs.parents(path) do
     for _, name in ipairs(VENV_NAMES) do
       local venv = vim.fs.joinpath(dir, name)
-      if vim.uv.fs_stat(py_bin(venv)) then return venv end
+      if is_venv_dir(venv) then return venv end
     end
     if dir == vim.env.HOME then break end
   end
@@ -74,15 +93,29 @@ function M.activate(bufnr)
   if not venv then return nil end
   if not M.activate_path(venv) then return nil end
   vim.b[bufnr].venv_activated = venv
-  vim.notify('venv: ' .. (vim.fs.relpath(vim.env.HOME, venv) or venv), vim.log.levels.INFO)
+  notify_transient('venv: ' .. (vim.fs.relpath(vim.env.HOME, venv) or venv), vim.log.levels.INFO)
   return venv
+end
+
+--- Name for statusline display: the directory the venv lives in (i.e. the
+--- project name), not the venv's own path. Only shown for python buffers,
+--- even though venv_activated can technically be set on any buffer (e.g. via
+--- `:VenvSelect` invoked from a non-python buffer).
+--- @param bufnr? integer
+--- @return string
+function M.status(bufnr)
+  bufnr = bufnr or 0
+  if vim.bo[bufnr].filetype ~= 'python' then return '' end
+  local venv = vim.b[bufnr].venv_activated
+  if not venv then return '' end
+  return vim.fs.basename(vim.fs.dirname(venv)) or ''
 end
 
 --- @return {path: string, label: string}[]
 function M.discover_venvs()
   local found, seen = {}, {}
   local function add(venv)
-    if venv and not seen[venv] and vim.uv.fs_stat(py_bin(venv)) then
+    if venv and not seen[venv] and is_venv_dir(venv) then
       seen[venv] = true
       table.insert(found, { path = venv, label = vim.fs.relpath(vim.env.HOME, venv) or venv })
     end
@@ -165,7 +198,7 @@ vim.api.nvim_create_user_command('VenvSelect', function()
     if not choice then return end
     if M.activate_path(choice.path) then
       vim.b[0].venv_activated = choice.path
-      vim.notify('venv: ' .. (vim.fs.relpath(vim.env.HOME, choice.path) or choice.path), vim.log.levels.INFO)
+      notify_transient('venv: ' .. (vim.fs.relpath(vim.env.HOME, choice.path) or choice.path), vim.log.levels.INFO)
     end
   end)
 end, { desc = 'Select a Python virtualenv' })

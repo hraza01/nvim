@@ -78,7 +78,16 @@ require('lualine').setup {
   sections = {
     lualine_a = { 'mode' },
     lualine_b = { { 'branch', icon = '' }, { 'diagnostics', sources = { 'nvim_lsp' } } },
-    lualine_c = { 'filename' },
+    lualine_c = {
+      {
+        function()
+          local name = require('lib.venv').status()
+          return name == '' and '' or ('(' .. name .. ')')
+        end,
+        color = { fg = '#ffffff' },
+      },
+      'filename',
+    },
     lualine_x = {
       'encoding',
       'fileformat',

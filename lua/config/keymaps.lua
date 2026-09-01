@@ -18,6 +18,8 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Focus upper window' })
 
 -- Vertical split
 vim.keymap.set('n', '<leader>\\', vim.cmd.vsplit, { desc = 'Vertical split' })
+-- Horizontal split
+vim.keymap.set('n', '<leader>_', vim.cmd.split, { desc = 'Horizontal split' })
 
 -- Disable ex mode
 vim.keymap.set('n', 'Q', '<nop>')

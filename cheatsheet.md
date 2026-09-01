@@ -234,6 +234,7 @@ The project picker (`<leader>pp`) shows a 🐳 marker for projects with a
 |-----|--------|
 | `<C-h/j/k/l>` | Move focus to split left/down/up/right |
 | `<leader>\\` | Vertical split |
+| `<leader>_` | Horizontal split |
 | `J` (visual) | Move selected lines down |
 | `K` (visual) | Move selected lines up |
 | `<C-d>` / `<C-u>` | Half-page jump (centered) |

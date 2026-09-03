@@ -38,6 +38,17 @@ vim.cmd.colorscheme 'vscode'
 
 require('todo-comments').setup { signs = false }
 
+-- bqnvim (optional): true while a `:BqRun` query is in flight.
+local function bqnvim_querying()
+  local ok, spinner = pcall(require, 'bqnvim.spinner')
+  return ok and spinner.is_active()
+end
+
+local function bqnvim_status()
+  local ok, spinner = pcall(require, 'bqnvim.spinner')
+  return (ok and spinner.status()) or ''
+end
+
 if vim.g.have_nerd_font then
   require('mini.icons').setup()
   MiniIcons.mock_nvim_web_devicons()
@@ -86,7 +97,9 @@ require('lualine').setup {
         end,
         color = { fg = '#ffffff' },
       },
-      'filename',
+      -- Swap 'filename' for the bqnvim spinner while a query is running.
+      { bqnvim_status, cond = bqnvim_querying },
+      { 'filename', cond = function() return not bqnvim_querying() end },
     },
     lualine_x = {
       'encoding',

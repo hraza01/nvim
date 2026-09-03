@@ -11,7 +11,7 @@
       "version": "1.0.0 - 2.0.0"
     },
     "bqnvim": {
-      "rev": "bfdbc838f500b20412bd2313e14d16e9a68f9685",
+      "rev": "f373beceafef2574c6113272467dc7108e1d568d",
       "src": "https://github.com/hraza01/bqnvim",
       "version": "'main'"
     },
